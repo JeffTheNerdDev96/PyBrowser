@@ -2,17 +2,14 @@
 
 #Based On PyQt6 and Chromium
 
-
-
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl, Qt # Import Qt for alignment 
 # from PyQt6.QtGui import QIcon # Import favicon
 
-
-
 class Browser(QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Py Browser")
@@ -84,7 +81,6 @@ class Browser(QMainWindow):
         # Connecting browser's urlChanged signal to update the URL bar.
         self.browser_view.urlChanged.connect(lambda url: self.url_bar.setText(url.toString()))
 
-
         # self.browser_view.urlChanged.connect(self._update_url_bar)
 
     def navigate(self):
@@ -97,7 +93,6 @@ class Browser(QMainWindow):
 
     def _update_url_bar(self, url: QUrl):
         self.url_bar.setText(url.toString())
-
 
 # Entry point for the application
 if __name__ == "__main__":
