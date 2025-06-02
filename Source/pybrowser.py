@@ -7,7 +7,7 @@ from PyQt6.QtGui import QIcon
 class Browser(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Dark Browser")
+        self.setWindowTitle("Py Browser")
         self.setGeometry(100, 100, 1200, 800)
         
         # Dark theme stylesheet
