@@ -8,14 +8,11 @@ A web browser built with Python and PyQt6
 
 
 ## Known Issues
-
-- Developer tools not yet implemented
 - Some websites may not render perfectly due to WebEngine limitations
 - Large executable size (~150MB) due to Qt dependencies
 
 
 ## Acknowledgments
-
 - **PyQt6** - For the excellent GUI framework
 - **Chromium/WebEngine** - For web rendering capabilities
 - **Python Community** - For the amazing ecosystem
