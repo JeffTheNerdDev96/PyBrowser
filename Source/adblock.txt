@@ -1,4 +1,175 @@
+# Top 100 Most Popular Ad Domains to Block
+# This list includes major ad networks, tracking services, and analytics
+# Last updated: June 2025
+# Usage: Place this file as "adblock.txt" in your browser directory
 
+# Google Ad Services
+doubleclick.net
+googleadservices.com
+googlesyndication.com
+googletagservices.com
+googletagmanager.com
+google-analytics.com
+googleads.g.doubleclick.net
+googleoptimize.com
+googletraveladservices.com
+
+# Facebook/Meta Ads & Tracking
+facebook.com/tr
+connect.facebook.net
+facebook.com/plugins
+fb.com/tr
+instagram.com/logging
+facebook.com/ajax
+
+# Amazon Advertising
+amazon-adsystem.com
+amazonpublisherdirect.com
+media-amazon.com
+aax-us-east.amazon-adsystem.com
+c.amazon-adsystem.com
+s.amazon-adsystem.com
+
+# Microsoft Advertising
+ads.microsoft.com
+bat.bing.com
+bingads.microsoft.com
+msads.net
+msftstatic.com
+
+# Yahoo/Verizon Media
+ads.yahoo.com
+advertising.yahoo.com
+gemini.yahoo.com
+flurry.com
+oath.com
+
+# Twitter/X Ads
+ads-twitter.com
+analytics.twitter.com
+t.co
+
+# Major Ad Networks
+adsense.google.com
+admob.google.com
+adsystem.google.com
+adnxs.com
+adsafeprotected.com
+adsystem.amazon.com
+outbrain.com
+taboola.com
+revcontent.com
+mgid.com
+
+# Tracking & Analytics
+hotjar.com
+segment.com
+mixpanel.com
+amplitude.com
+quantcast.com
+scorecardresearch.com
+chartbeat.com
+crazyegg.com
+mouseflow.com
+fullstory.com
+
+# Video Ad Networks
+doubleclick.net/gampad
+video-ad-stats.googlesyndication.com
+ima3vpaid.appspot.com
+fwmrm.net
+springserve.com
+spotx.tv
+teads.tv
+
+# Mobile Ad Networks
+unity3d.com/privacy
+unityads.unity3d.com
+chartboost.com
+vungle.com
+applovin.com
+ironsrc.com
+tapjoy.com
+supersonic.com
+
+# Pop-up & Banner Ads
+propellerads.com
+popads.net
+adcash.com
+hilltopads.net
+exoclick.com
+trafficjunky.net
+ero-advertising.com
+juicyads.com
+
+# Native Advertising
+outbrain.com
+taboola.com
+revcontent.com
+mgid.com
+content.ad
+nativo.com
+sharethrough.com
+plista.com
+
+# Retargeting Services
+criteo.com
+rlcdn.com
+retargeter.com
+adroll.com
+perfectaudience.com
+chango.com
+triggit.com
+
+# Social Media Widgets & Tracking
+addthis.com
+sharethis.com
+disqus.com/embed
+apis.google.com/js/plusone.html
+connect.facebook.net/en_US/all.js
+platform.twitter.com/widgets.js
+
+# CDN & Ad Serving
+cloudflare.com/ajax
+cdnjs.cloudflare.com/ajax
+maxcdn.com
+bootstrapcdn.com/ajax
+
+# Email Tracking
+mailchimp.com/ping
+constantcontact.com/track
+sendgrid.com/track
+mandrill.com/track
+sparkpost.com/track
+
+# Affiliate Networks
+commission-junction.com
+linksynergy.com
+shareasale.com
+impact.com
+partnerize.com
+clickbank.com
+cj.com
+awin.com
+
+# Additional Trackers
+kissmetrics.com
+optimizely.com
+newrelic.com
+bugsnag.com
+sentry.io
+rollbar.com
+honeybadger.io
+
+# Misc Ad Services
+adskeeper.co.uk
+bidswitch.net
+contextweb.com
+openx.net
+pubmatic.com
+rubicon.com
+sovrn.com
+indexww.com
 
 # Common Ad/Tracking Networks
 google-analytics.com

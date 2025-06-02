@@ -2,6 +2,9 @@
 
 # Based On PyQt6 and Chromium
 
+#NOT WORKING VERSION WITH ADBLOCKER
+
+
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox
 from PyQt6.QtWebEngineWidgets import QWebEngineView
