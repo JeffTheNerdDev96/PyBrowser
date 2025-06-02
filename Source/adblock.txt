@@ -1,0 +1,50 @@
+
+
+# Common Ad/Tracking Networks
+google-analytics.com
+doubleclick.net
+googlesyndication.com
+adservice.google.com
+ads.google.com
+pixel.facebook.com
+facebook.com/tr
+analytics.yahoo.com
+ad.yieldmanager.com
+quantserve.com
+scorecardresearch.com
+criteo.com
+ad.atdmt.com
+adnxs.com
+openx.net
+rubiconproject.com
+appnexus.com
+taboola.com
+outbrain.com
+bing.com/ads
+
+# Generic Ad/Tracking Subdomains 
+adserver.
+track.
+analytics.
+metrics.
+beacon.
+pixel.
+stat.
+smetrics.
+
+# Known Ad-serving domains 
+a.tribalfusion.com
+cdn.ads.com
+static.ads.net
+media.adtech.de
+
+# Social media tracking 
+platform.twitter.com/widgets.js
+connect.facebook.net/en_US/sdk.js
+
+# Specific known ad scripts/elements
+/ads/
+/ad.js
+/advertisement/
+/tracker.js
+/pixel.gif

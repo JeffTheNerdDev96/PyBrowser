@@ -10,6 +10,8 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl, Qt # Import Qt for alignment 
 # from PyQt6.QtGui import QIcon # Import favicon
 
+
+
 class Browser(QMainWindow):
     def __init__(self):
         super().__init__()
