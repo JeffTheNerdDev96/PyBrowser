@@ -5,8 +5,8 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import QUrl, Qt # Import Qt for alignment 
-# from PyQt6.QtGui import QIcon # Import favicon
+from PyQt6.QtCore import QUrl
+from urllib.parse import quote_plus
 
 class Browser(QMainWindow):
 
@@ -46,13 +46,13 @@ class Browser(QMainWindow):
         
         # Initialize navigation buttons
         # Ensure buttons have clear parentage if not added directly to a layout immediately
-        self.back_btn = QPushButton("←")
-        self.forward_btn = QPushButton("→")
-        self.reload_btn = QPushButton("↻")
+        self.back_btn = QPushButton("<")
+        self.forward_btn = QPushButton(">")
+        self.reload_btn = QPushButton("Reload")
         
         # Initialize URL bar
         self.url_bar = QLineEdit()
-        self.url_bar.setPlaceholderText("Enter URL...")
+        self.url_bar.setPlaceholderText("Enter URL or search...")
         
         # Add widgets to the navigation layout
         nav_layout.addWidget(self.back_btn)
@@ -79,17 +79,30 @@ class Browser(QMainWindow):
         self.url_bar.returnPressed.connect(self.navigate)
         
         # Connecting browser's urlChanged signal to update the URL bar.
-        self.browser_view.urlChanged.connect(lambda url: self.url_bar.setText(url.toString()))
+        self.browser_view.urlChanged.connect(self._update_url_bar)
 
         # self.browser_view.urlChanged.connect(self._update_url_bar)
 
     def navigate(self):
-        """Navigates the browser to the URL entered in the URL bar."""
-        url_text = self.url_bar.text()
-        # Basic URL prefixing for convenience.
-        if not url_text.startswith(('http://', 'https://')):
-            url_text = 'https://' + url_text
-        self.browser_view.setUrl(QUrl(url_text))
+        """Navigate to a URL or search Google when the input is not URL-like."""
+        url_text = self.url_bar.text().strip()
+        if not url_text:
+            return
+
+        q_url = QUrl(url_text)
+        if q_url.isValid() and q_url.scheme() in ("http", "https"):
+            self.browser_view.setUrl(q_url)
+            return
+
+        looks_like_domain = "." in url_text and " " not in url_text
+        if looks_like_domain:
+            prefixed_q_url = QUrl("https://" + url_text)
+            if prefixed_q_url.isValid():
+                self.browser_view.setUrl(prefixed_q_url)
+                return
+
+        search_query = quote_plus(url_text)
+        self.browser_view.setUrl(QUrl(f"https://www.google.com/search?q={search_query}"))
 
     def _update_url_bar(self, url: QUrl):
         self.url_bar.setText(url.toString())

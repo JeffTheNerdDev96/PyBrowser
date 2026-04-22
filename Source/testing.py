@@ -8,10 +8,45 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit, QMessageBox
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import QUrl, Qt 
-from PyQt6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineProfile 
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineProfile
 from urllib.parse import quote_plus, urlparse
-import os # For checking if adblock.txt exists
+from pathlib import Path
+
+
+APP_DIR = Path(__file__).resolve().parent
+
+
+def normalize_adblock_rule(rule):
+    """Return a normalized (host, path_prefix) tuple, or None for unsupported rules."""
+    rule = rule.strip()
+    if not rule or rule.startswith(("#", "!", "[")):
+        return None
+
+    rule = rule.split("#", 1)[0].strip()
+    rule = rule.split("$", 1)[0].strip()
+    if not rule:
+        return None
+
+    if rule.startswith(("0.0.0.0 ", "127.0.0.1 ")):
+        parts = rule.split()
+        rule = parts[1] if len(parts) > 1 else ""
+    elif rule.startswith("||"):
+        rule = rule[2:]
+
+    rule = rule.lstrip("|").rstrip("^")
+    if not rule:
+        return None
+
+    parsed = urlparse(rule if "://" in rule else f"https://{rule}")
+    host = (parsed.hostname or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    if not host or "." not in host:
+        return None
+
+    path_prefix = parsed.path.rstrip("/")
+    return host, path_prefix
 
 # --- Adblock Interceptor Class ---
 class AdblockInterceptor(QWebEngineUrlRequestInterceptor):
@@ -20,18 +55,21 @@ class AdblockInterceptor(QWebEngineUrlRequestInterceptor):
     """
     def __init__(self, blocked_domains):
         super().__init__()
-        # Using a set for efficient lookup and normalize domains
-        self.blocked_domains = set()
-        for domain in blocked_domains:
-            # Remove protocol and normalize domain
-            if domain.startswith('http://') or domain.startswith('https://'):
-                domain = urlparse(domain).netloc
-            # Remove www. prefix for better matching
-            if domain.startswith('www.'):
-                domain = domain[4:]
-            self.blocked_domains.add(domain.lower())
+        self.blocked_hosts = set()
+        self.blocked_paths = []
+        for rule in blocked_domains:
+            normalized = normalize_adblock_rule(rule)
+            if normalized is None:
+                continue
+
+            host, path_prefix = normalized
+            if path_prefix:
+                self.blocked_paths.append((host, path_prefix))
+            else:
+                self.blocked_hosts.add(host)
         
-        print(f"Adblocker initialized with {len(self.blocked_domains)} blocked domains.")
+        total_rules = len(self.blocked_hosts) + len(self.blocked_paths)
+        print(f"Adblocker initialized with {total_rules} usable rules.")
 
     def interceptRequest(self, info):
         """
@@ -44,19 +82,28 @@ class AdblockInterceptor(QWebEngineUrlRequestInterceptor):
         if host.startswith('www.'):
             host = host[4:]
         
-        # Check if host exactly matches or is a subdomain of blocked domains
-        should_block = False
-        for blocked_domain in self.blocked_domains:
-            if host == blocked_domain or host.endswith('.' + blocked_domain):
-                should_block = True
-                break
+        should_block = self._host_is_blocked(host)
+        if not should_block:
+            request_path = request_url.path().rstrip("/")
+            should_block = any(
+                self._host_matches(host, blocked_host) and request_path.startswith(path_prefix)
+                for blocked_host, path_prefix in self.blocked_paths
+            )
         
         if should_block:
-            print(f"🚫 Adblocker blocked: {request_url.toString()}")
+            print(f"Blocked by adblocker: {request_url.toString()}")
             info.block(True)  # Block the request
         # Uncomment the line below for debugging allowed requests
         # else:
-        #     print(f"✅ Adblocker allowed: {request_url.toString()}")
+        #     print(f"Adblocker allowed: {request_url.toString()}")
+
+    def _host_is_blocked(self, host):
+        parts = host.split(".")
+        return any(".".join(parts[index:]) in self.blocked_hosts for index in range(len(parts)))
+
+    @staticmethod
+    def _host_matches(host, blocked_host):
+        return host == blocked_host or host.endswith("." + blocked_host)
 
 # --- Browser Class ---
 class Browser(QMainWindow):
@@ -89,9 +136,9 @@ class Browser(QMainWindow):
 
         nav_layout = QHBoxLayout()
         
-        self.back_btn = QPushButton("←")
-        self.forward_btn = QPushButton("→")
-        self.reload_btn = QPushButton("↻")
+        self.back_btn = QPushButton("<")
+        self.forward_btn = QPushButton(">")
+        self.reload_btn = QPushButton("Reload")
         
         self.url_bar = QLineEdit()
         self.url_bar.setPlaceholderText("Enter URL or search term...")
@@ -105,7 +152,7 @@ class Browser(QMainWindow):
         self.browser_view = QWebEngineView()
         
         # --- Initialize Adblocker AFTER creating browser view ---
-        self.adblock_list = self.load_adblock_list("adblock.txt")
+        self.adblock_list = self.load_adblock_list(APP_DIR / "adblock.txt")
         if not self.adblock_list:
             # Add some common ad domains as defaults if no file exists
             self.adblock_list = [
@@ -132,22 +179,22 @@ class Browser(QMainWindow):
             
             if profile is not None:
                 profile.setUrlRequestInterceptor(self.adblock_interceptor)
-                print("✅ Ad blocker interceptor registered successfully with page profile")
+                print("Ad blocker interceptor registered successfully with page profile")
             else:
                 raise Exception("Page profile is None")
                 
         except Exception as e:
-            print(f"❌ Error setting up ad blocker with page profile: {e}")
+            print(f"Error setting up ad blocker with page profile: {e}")
             # Fallback: try default profile
             try:
                 profile = QWebEngineProfile.defaultProfile()
                 if profile is not None:
                     profile.setUrlRequestInterceptor(self.adblock_interceptor)
-                    print("✅ Ad blocker registered with default profile")
+                    print("Ad blocker registered with default profile")
                 else:
-                    print("❌ Default profile is also None")
+                    print("Default profile is also None")
             except Exception as e2:
-                print(f"❌ Fallback also failed: {e2}")
+                print(f"Fallback also failed: {e2}")
                 profile = None
         
         self.browser_view.setUrl(QUrl("https://www.google.com"))
@@ -172,31 +219,20 @@ class Browser(QMainWindow):
         Assumes one domain per line. Supports comments starting with #.
         """
         blocked_domains = []
-        if os.path.exists(filename):
+        adblock_path = Path(filename)
+        if adblock_path.exists():
             try:
-                with open(filename, 'r', encoding='utf-8') as f:
-                    for line_num, line in enumerate(f, 1):
+                with adblock_path.open('r', encoding='utf-8') as f:
+                    for line in f:
                         domain = line.strip()
-                        # Skip empty lines and comments
-                        if domain and not domain.startswith('#'):
-                            # Handle different ad block list formats
-                            if domain.startswith('||'):
-                                # EasyList format: ||example.com^
-                                domain = domain[2:].rstrip('^$')
-                            elif domain.startswith('0.0.0.0 '):
-                                # Hosts file format: 0.0.0.0 example.com
-                                domain = domain.split(' ', 1)[1]
-                            elif domain.startswith('127.0.0.1 '):
-                                # Alternative hosts format
-                                domain = domain.split(' ', 1)[1]
-                            
+                        if normalize_adblock_rule(domain) is not None:
                             blocked_domains.append(domain)
                             
-                print(f"✅ Loaded {len(blocked_domains)} domains from {filename}")
+                print(f"Loaded {len(blocked_domains)} domains from {adblock_path}")
             except IOError as e:
-                print(f"❌ Error loading adblock file {filename}: {e}")
+                print(f"Error loading adblock file {adblock_path}: {e}")
         else:
-            print(f"⚠️  Adblock file '{filename}' not found.")
+            print(f"Adblock file '{adblock_path}' not found.")
         return blocked_domains
 
     def navigate(self):
@@ -212,16 +248,18 @@ class Browser(QMainWindow):
 
         if q_url.isValid() and q_url.scheme() in ('http', 'https'):
             self.browser_view.setUrl(q_url)
-        else:
-            prefixed_url = "https://" + url_text
-            prefixed_q_url = QUrl(prefixed_url)
+            return
 
-            if prefixed_q_url.isValid() and prefixed_q_url.scheme() == 'https':
+        looks_like_domain = "." in url_text and " " not in url_text
+        if looks_like_domain:
+            prefixed_q_url = QUrl("https://" + url_text)
+            if prefixed_q_url.isValid():
                 self.browser_view.setUrl(prefixed_q_url)
-            else:
-                search_query = quote_plus(url_text) 
-                search_url = QUrl(f"https://www.google.com/search?q={search_query}")
-                self.browser_view.setUrl(search_url)
+                return
+
+        search_query = quote_plus(url_text)
+        search_url = QUrl(f"https://www.google.com/search?q={search_query}")
+        self.browser_view.setUrl(search_url)
 
     def on_load_finished(self, ok):
         """Handles the completion of a page load, checking for errors."""
@@ -247,8 +285,8 @@ if __name__ == "__main__":
     browser_window = Browser()
     browser_window.show()
     
-    print("🚀 PyQt6 Browser with Ad Blocker started!")
-    print("📁 Place your ad blocking domains in 'adblock.txt' (one per line)")
-    print("🛡️  Ad blocker is active and monitoring requests")
+    print("PyQt6 Browser with Ad Blocker started!")
+    print("Place your ad blocking domains in 'adblock.txt' (one per line)")
+    print("Ad blocker is active and monitoring requests")
     
     sys.exit(app.exec())
